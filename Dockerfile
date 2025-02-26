@@ -1,9 +1,17 @@
-FROM amd64/rust:1.83-alpine3.19 as builder
+FROM rust:1.83-alpine3.19 AS builder
+RUN apk update 
+RUN apk add git curl build-base autoconf automake libtool pkgconfig libressl-dev musl-dev gcc libc-dev g++ libffi-dev unzip
 
-RUN apk update && apk add git curl build-base autoconf automake libtool pkgconfig libressl-dev musl-dev gcc libc-dev g++ libffi-dev
+ARG TARGETPLATFORM
+ARG PROTOBUFVER=26.0
+RUN case ${TARGETPLATFORM} in \
+         "linux/amd64")  PBF_ARCH=x86_64   ;; \
+         "linux/arm64"|"linux/arm64/v8")  PBF_ARCH=aarch_64 ;; \
+         "linux/386")    PBF_ARCH=x86_32   ;; \
+    esac \
+&& curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUFVER}/protoc-${PROTOBUFVER}-linux-${PBF_ARCH}.zip \ 
+&& unzip protoc-${PROTOBUFVER}-linux-${PBF_ARCH}.zip
 
-RUN curl -LO https://github.com/protocolbuffers/protobuf/releases/download/v26.0/protoc-26.0-linux-x86_64.zip
-RUN unzip protoc-26.0-linux-x86_64.zip
 RUN cp ./bin/protoc /usr/bin/protoc
 
 # create a new empty shell project, copy dependencies

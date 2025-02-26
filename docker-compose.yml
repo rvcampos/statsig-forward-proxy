@@ -1,0 +1,16 @@
+services:
+  proxy:
+    image: ${IMAGE_REPOSITORY:-statsig}/statsig-forward-proxy:${TAG:-latest}
+    platform: linux/arm64
+    command: ["${STATSIG_MODE:-grpc-and-http}", "${STATSIG_CACHE:-disabled}"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      x-bake:
+        platforms:
+          - linux/amd64
+          - linux/arm64
+    ports:
+      - 8000:8000
+      - 8001:8001
+      - 50051:50051
